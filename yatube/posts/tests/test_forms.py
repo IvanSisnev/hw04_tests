@@ -63,9 +63,8 @@ class FormsTests(PostsTests):
             'author': FormsTests.user,
         }
 
-        response = self.authorized_client.post(
-            reverse('posts:post_create'),
-            data=form_data, follow=True)
+        self.authorized_client.post(reverse('posts:post_create'),
+                                    data=form_data, follow=True)
 
         # проверка добавления новой записи в БД
         self.assertEqual(Post.objects.count(), post_count + 1)
@@ -80,9 +79,11 @@ class FormsTests(PostsTests):
         form_data: Dict[str, str] = {
             'text': new_text,
         }
-        response = self.authorized_client.post(
-            reverse('posts:post_edit', kwargs={'post_id': FormsTests.post.id}),
-            data=form_data, follow=True)
+
+        self.authorized_client.post(reverse('posts:post_edit',
+                                            kwargs={
+                                                'post_id': FormsTests.post.id
+                                            }), data=form_data, follow=True)
 
         # проверка успешного изменения записи
         edited_post = Post.objects.get(id=FormsTests.post.id)
