@@ -49,9 +49,9 @@ class ViewsTests(PostsTests):
                                 page_data['context']['variable']]),
                             page_data['context']['data'])
                     else:
-                        self.assertEqual(response.context[
-                                             page_data['context']['variable']
-                                         ],page_data['context']['data'])
+                        self.assertEqual(
+                            response.context[page_data['context']['variable']],
+                            page_data['context']['data'])
 
     def test_post(self):
         """
