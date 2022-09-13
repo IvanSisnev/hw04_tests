@@ -17,23 +17,15 @@ class PostModelTest(PostsTests):
         Результат метода __str__ совпадает с ожидаемым.
         """
         # для модели Post
-        post = PostModelTest.post
-        result = post.__str__()
-        norm = f'{post.text[:15]}'
-        self.assertEqual(result, norm)
+        self.assertEqual(self.post.__str__(), f'{self.post.text[:15]}')
 
         # для модели Group
-        group = PostModelTest.group
-        result = group.__str__()
-        norm = f'{group.title}'
-        self.assertEqual(result, norm)
+        self.assertEqual(self.group.__str__(), f'{self.group.title}')
 
-    def test_verbose(self):
+    def test_post_verbose(self):
         """
-        Наименования полей совпадают с ожидаемыми.
+        Наименования полей в модели Post совпадают с ожидаемыми.
         """
-        # для модели Post
-        post = PostModelTest.post
         post_field_verbose: Dict[str, str] = {
             'text': 'Текст поста',
             'pub_date': 'Дата публикации',
@@ -42,11 +34,13 @@ class PostModelTest(PostsTests):
         }
         for field, expected_value in post_field_verbose.items():
             with self.subTest(field=field):
-                self.assertEqual(post._meta.get_field(field).verbose_name,
+                self.assertEqual(self.post._meta.get_field(field).verbose_name,
                                  expected_value)
 
-        # для модели Group
-        group = PostModelTest.group
+    def test_group_verbose(self):
+        """
+        Наименования полей в модели Group совпадают с ожидаемыми.
+        """
         group_field_verbose: Dict[str, str] = {
             'title': 'Название группы',
             'slug': 'Слаг группы',
@@ -54,15 +48,14 @@ class PostModelTest(PostsTests):
         }
         for field, expected_value in group_field_verbose.items():
             with self.subTest(field=field):
-                self.assertEqual(group._meta.get_field(field).verbose_name,
+                self.assertEqual(self.group._meta.get_field(
+                    field).verbose_name,
                                  expected_value)
 
-    def test_help_text(self):
+    def test_post_help_text(self):
         """
-        Вспомогательные тексты совпадают с ожидаемыми.
+        Вспомогательные тексты в модели Post совпадают с ожидаемыми.
         """
-        # для модели Post
-        post = PostModelTest.post
         post_help_text: Dict[str, str] = {
             'text': 'Поле для текста поста',
             'author': 'Выберите автора',
@@ -70,11 +63,13 @@ class PostModelTest(PostsTests):
         }
         for field, expected_value in post_help_text.items():
             with self.subTest(field=field):
-                self.assertEqual(post._meta.get_field(field).help_text,
+                self.assertEqual(self.post._meta.get_field(field).help_text,
                                  expected_value)
 
-        # для модели Group
-        group = PostModelTest.group
+    def test_group_help_text(self):
+        """
+        Вспомогательные тексты в модели Group совпадают с ожидаемыми.
+        """
         group_help_text: Dict[str, str] = {
             'title': 'Поле для названия сообщества',
             'slug': 'Короткий универсальный идентификатор сообщества',
@@ -82,5 +77,5 @@ class PostModelTest(PostsTests):
         }
         for field, expected_value in group_help_text.items():
             with self.subTest(field=field):
-                self.assertEqual(group._meta.get_field(field).help_text,
+                self.assertEqual(self.group._meta.get_field(field).help_text,
                                  expected_value)

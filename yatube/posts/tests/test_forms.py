@@ -19,10 +19,12 @@ class FormsTests(PostsTests):
 
     def setUp(self):
         """
-        Создает авторизованного пользователя.
+        Создает неавторизованного и авторизованного пользователей.
         """
+        self.guest_client = Client()
+
         self.authorized_client = Client()
-        self.authorized_client.force_login(FormsTests.user)
+        self.authorized_client.force_login(self.user)
 
     def test_form_fields_type(self):
         """
@@ -33,24 +35,17 @@ class FormsTests(PostsTests):
             'text': forms.fields.CharField,
             'group': forms.fields.ChoiceField,
         }
-        # проверка правильности формы страницы редактирования записи
-        reverse_name = 'posts:post_edit'
-        param = {'post_id': FormsTests.post.id}
-        response = self.authorized_client.get(reverse(reverse_name,
-                                                      kwargs=param))
-        for field, field_type in form_fields.items():
-            with self.subTest(field=field):
-                form_field = response.context.get('form').fields.get(field)
-                self.assertIsInstance(form_field, field_type)
 
-        # проверка правильности формы страницы создания записи
-        reverse_name = 'posts:post_create'
-        response = self.authorized_client.get(reverse(reverse_name))
-
-        for field, field_type in form_fields.items():
-            with self.subTest(field=field):
-                form_field = response.context.get('form').fields.get(field)
-                self.assertIsInstance(form_field, field_type)
+        for page_name, page_data in self.pages_dict.items():
+            if 'form' in page_data:
+                response = self.authorized_client.get(
+                    reverse(page_name, kwargs=page_data['param'])
+                )
+                for field, field_type in form_fields.items():
+                    with self.subTest(field=field):
+                        form_field = response.context.get('form').fields.get(
+                            field)
+                        self.assertIsInstance(form_field, field_type)
 
     def test_post_create(self):
         """
@@ -58,9 +53,10 @@ class FormsTests(PostsTests):
         """
         post_count = Post.objects.count()
 
-        form_data: Dict[str, Any] = {
+        form_data = {
             'text': 'Текст нового поста',
-            'author': FormsTests.user,
+            'author': self.user,
+            'group': self.group.id,
         }
 
         self.authorized_client.post(reverse('posts:post_create'),
@@ -69,22 +65,46 @@ class FormsTests(PostsTests):
         # проверка добавления новой записи в БД
         self.assertEqual(Post.objects.count(), post_count + 1)
         # проверка созданной записи
-        self.assertTrue(Post.objects.filter(text=form_data['text']).exists())
+        post = Post.objects.first()
+        self.assertEqual(post.text, form_data['text'])
+        self.assertEqual(post.author, form_data['author'])
+        self.assertEqual(post.group.id, form_data['group'])
+
+    def test_post_unauth_create_redir(self):
+        """
+        Проверить невозможность создания записи неавторизованным
+        пользователем.
+        """
+        form_data = {
+            'text': 'Текст нового поста гостя',
+            'author': self.guest_client,
+        }
+        self.guest_client.post(reverse('posts:post_create'),
+                               data=form_data, follow=True)
+        # проверка того, что запись не создана
+        post = Post.objects.first()
+        self.assertNotEqual(post.text, form_data['text'])
+        self.assertNotEqual(post.author, form_data['author'])
+
+        # проверка редиректа неавторизованного пользователя
+        response = self.guest_client.get(reverse('posts:post_create'))
+        self.assertRedirects(response, reverse('users:login'))
 
     def test_post_edit(self):
         """
         Проверить редактирование существующей записи.
         """
-        new_text = 'Отредактированный текст нового поста'
         form_data: Dict[str, str] = {
-            'text': new_text,
+            'text': 'Отредактированный текст нового поста',
+            'group': self.group.id
         }
-
         self.authorized_client.post(reverse('posts:post_edit',
-                                            kwargs={
-                                                'post_id': FormsTests.post.id
-                                            }), data=form_data, follow=True)
+                                            kwargs=self.pages_dict[
+                                                'posts:post_edit']['param']),
+                                    data=form_data, follow=True)
 
         # проверка успешного изменения записи
-        edited_post = Post.objects.get(id=FormsTests.post.id)
-        self.assertEqual(edited_post.text, new_text)
+        edited_post = Post.objects.get(id=self.post.id)
+        self.assertEqual(edited_post.text, form_data['text'])
+        self.assertEqual(edited_post.author, self.user)
+        self.assertEqual(edited_post.group.id, form_data['group'])

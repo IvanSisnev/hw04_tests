@@ -82,7 +82,7 @@ def post_detail(request, post_id):
     return render(request, template, context)
 
 
-@login_required
+@login_required(redirect_field_name=None)
 def post_create(request):
     """
     Обработать запрос создания новой записи.

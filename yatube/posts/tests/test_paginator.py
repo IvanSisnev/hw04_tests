@@ -2,12 +2,11 @@
 Файл с тестами паджинации страниц.
 """
 
-from typing import Dict, Any
-
 from django.test import Client
 from django.urls import reverse
 
 from .tests_setup import PostsTests
+from ..models import Post
 
 
 class PaginatorTests(PostsTests):
@@ -20,24 +19,36 @@ class PaginatorTests(PostsTests):
         Создает авторизованного пользователя.
         """
         self.authorized_client = Client()
-        self.authorized_client.force_login(PaginatorTests.user)
+        self.authorized_client.force_login(self.user)
 
     def test_paginator(self):
         """
         Проверить правильность работы поджинатора на страницах.
         """
-        reverse_names_kwargs: Dict[str, Any] = {
-            'posts:index': None,
-            'posts:profile': {'username': PaginatorTests.user.username},
-            'posts:group_list': {'slug': PaginatorTests.group.slug},
-        }
+        for page_name, page_data in self.pages_dict.items():
+            if 'paginator' in page_data:
+                response = self.authorized_client.get(reverse(page_name,
+                                                              kwargs=page_data[
+                                                                  'param'
+                                                              ]
+                                                              )
+                                                      )
+                # общее количество записей в базе
+                total_posts = Post.objects.count()
+                # максимальное количество записей на странице
+                posts_per_page = response.context[
+                    'page_obj'].paginator.per_page
+                # список страниц с записями
+                page_list = response.context['page_obj'].paginator.page_range
 
-        for reverse_name, param in reverse_names_kwargs.items():
-            # проверка первой страницы
-            response = self.authorized_client.get(reverse(reverse_name,
-                                                          kwargs=param))
-            self.assertEqual(len(response.context['page_obj']), 10)
-            # проверка второй страницы
-            response = self.authorized_client.get(
-                reverse(reverse_name, kwargs=param) + '?page=2')
-            self.assertEqual(len(response.context['page_obj']), 4)
+                for page in page_list:
+                    response = self.authorized_client.get(
+                        reverse(page_name,
+                                kwargs=page_data['param']) + f'?page={page}')
+                    if total_posts >= posts_per_page:
+                        self.assertEqual(len(response.context['page_obj']),
+                                         posts_per_page)
+                        total_posts -= posts_per_page
+                    else:
+                        self.assertEqual(len(response.context['page_obj']),
+                                         total_posts)
