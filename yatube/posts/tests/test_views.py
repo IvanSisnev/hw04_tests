@@ -38,20 +38,21 @@ class ViewsTests(PostsTests):
         """
         for page_name, page_data in self.pages_dict.items():
             with self.subTest(page_name=page_name):
-                if 'context' in page_data:
-                    response = self.authorized_client.get(
-                        reverse(page_name, kwargs=page_data['param'])
-                    )
-                    if 'test_method' in page_data['context']:
-                        self.assertEqual(page_data['context'][
-                            'test_method'](
-                            response.context[
-                                page_data['context']['variable']]),
-                            page_data['context']['data'])
-                    else:
-                        self.assertEqual(
-                            response.context[page_data['context']['variable']],
-                            page_data['context']['data'])
+                if 'context' not in page_data:
+                    continue
+                response = self.authorized_client.get(
+                    reverse(page_name, kwargs=page_data['param'])
+                )
+                if 'test_method' in page_data['context']:
+                    self.assertEqual(page_data['context'][
+                        'test_method'](
+                        response.context[
+                            page_data['context']['variable']]),
+                        page_data['context']['data'])
+                else:
+                    self.assertEqual(
+                        response.context[page_data['context']['variable']],
+                        page_data['context']['data'])
 
     def test_post(self):
         """
@@ -61,7 +62,8 @@ class ViewsTests(PostsTests):
 
         for page_name, page_data in self.pages_dict.items():
             with self.subTest(page_name=page_name):
-                if 'paginator' in page_data:
-                    response = self.authorized_client.get(reverse(
-                        page_name, kwargs=page_data['param']))
-                    self.assertContains(response, self.post)
+                if 'paginator' not in page_data:
+                    continue
+                response = self.authorized_client.get(reverse(
+                    page_name, kwargs=page_data['param']))
+                self.assertContains(response, self.post)

@@ -17,10 +17,10 @@ class PostModelTest(PostsTests):
         Результат метода __str__ совпадает с ожидаемым.
         """
         # для модели Post
-        self.assertEqual(self.post.__str__(), f'{self.post.text[:15]}')
+        self.assertEqual(str(self.post), f'{self.post.text[:15]}')
 
         # для модели Group
-        self.assertEqual(self.group.__str__(), f'{self.group.title}')
+        self.assertEqual(str(self.group), f'{self.group.title}')
 
     def test_post_verbose(self):
         """
