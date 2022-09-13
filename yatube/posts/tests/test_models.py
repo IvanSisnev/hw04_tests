@@ -49,7 +49,7 @@ class PostModelTest(PostsTests):
         for field, expected_value in group_field_verbose.items():
             with self.subTest(field=field):
                 self.assertEqual(self.group._meta.get_field(
-                    field).verbose_name,expected_value)
+                    field).verbose_name, expected_value)
 
     def test_post_help_text(self):
         """

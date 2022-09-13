@@ -40,7 +40,7 @@ class ViewsTests(PostsTests):
             with self.subTest(page_name=page_name):
                 if 'context' in page_data:
                     response = self.authorized_client.get(
-                        reverse(page_name,kwargs=page_data['param'])
+                        reverse(page_name, kwargs=page_data['param'])
                     )
                     if 'test_method' in page_data['context']:
                         self.assertEqual(page_data['context'][
@@ -49,9 +49,9 @@ class ViewsTests(PostsTests):
                                 page_data['context']['variable']]),
                             page_data['context']['data'])
                     else:
-                        self.assertEqual(response.context[page_data[
-                            'context']['variable']],
-                                         page_data['context']['data'])
+                        self.assertEqual(response.context[
+                                             page_data['context']['variable']
+                                         ],page_data['context']['data'])
 
     def test_post(self):
         """
