@@ -39,13 +39,9 @@ class ViewsTests(PostsTests):
         for page_name, page_data in self.pages_dict.items():
             with self.subTest(page_name=page_name):
                 if 'context' in page_data:
-                    response = self.authorized_client.get(reverse(page_name,
-                                                                  kwargs=
-                                                                  page_data[
-                                                                      'param'
-                                                                  ]
-                                                                  )
-                                                          )
+                    response = self.authorized_client.get(
+                        reverse(page_name,kwargs=page_data['param'])
+                    )
                     if 'test_method' in page_data['context']:
                         self.assertEqual(page_data['context'][
                             'test_method'](
@@ -59,7 +55,8 @@ class ViewsTests(PostsTests):
 
     def test_post(self):
         """
-        Проверяет, что созданная запись отображается на нужных страницах.
+        Проверяет, что созданная запись отображается на нужных
+        страницах.
         """
 
         for page_name, page_data in self.pages_dict.items():
